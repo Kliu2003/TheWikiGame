@@ -195,13 +195,11 @@ std::vector<std::string> TheWikiGame::djikstra(std::string startLocation, std::s
     bool visited[size];
     int weights[size];
     int prev[size];
-    int next[size];
     for (int i = 0; i < size; i++) {
         bestDist[i] = 999999999;
         visited[i] = false;
         weights[i] = -1 * int(directedAdjacencyList[i].size());
         prev[i] = -1;
-        next[i] = -1;
     }
     bestDist[linkToId[startLocation]] = 0;
 
@@ -237,6 +235,11 @@ std::vector<std::string> TheWikiGame::djikstra(std::string startLocation, std::s
     while (id != linkToId[startLocation]) {
         ret.insert(ret.begin(), idToLink[id]);
         id = prev[id];
+        if (id == -1) {
+            std::vector<string> temp = std::vector<string>();
+            temp.push_back("no path found.");
+            return temp;
+        }
     }
     ret.insert(ret.begin(), idToLink[id]);
 
