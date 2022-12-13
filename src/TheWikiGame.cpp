@@ -165,8 +165,86 @@ std::vector<std::string> TheWikiGame::bfs(std::string startLocation, std::string
     }
 }
 
-std::vector<std::vector<string>> TheWikiGame::djikstra(std::string startLocation, std::string endLocation) {
-    return std::vector<std::vector<string>>();
+// finds the path which uses the most well-known topics (correlation: the pages/links which have more links)
+// this does not guarantee shortest path, but avoids obscure topics players may not know about (and therefore will not click on)
+std::vector<std::string> TheWikiGame::djikstra(std::string startLocation, std::string endLocation) {
+    std::unordered_map<int, std::vector<int>> directedAdjacencyList;
+    directedAdjacencyList[0].push_back(2);
+    directedAdjacencyList[0].push_back(1);
+    directedAdjacencyList[1].push_back(2);
+    directedAdjacencyList[1].push_back(3);
+    directedAdjacencyList[1].push_back(4);
+    directedAdjacencyList[2].push_back(1);
+    directedAdjacencyList[3].push_back(1);
+    directedAdjacencyList[4].push_back(1);
+    std::unordered_map<std::string, int>linkToId;
+    linkToId["Andrew Jackson"] = 0;
+    linkToId["John Wu"] = 1;
+    linkToId["Abraham Lincoln"] = 2;
+    linkToId["A"] = 3;
+    linkToId["B"] = 4;
+    std::unordered_map<int, std::string>idToLink;
+    idToLink[0] = "Andrew Jackson";
+    idToLink[1] = "John Wu";
+    idToLink[2] = "Abraham Lincoln";
+    idToLink[3] = "A";
+    idToLink[4] = "B";
+
+    int size = int(directedAdjacencyList.size());
+    int bestDist[size];
+    bool visited[size];
+    int weights[size];
+    int prev[size];
+    int next[size];
+    for (int i = 0; i < size; i++) {
+        bestDist[i] = 999999999;
+        visited[i] = false;
+        weights[i] = -1 * int(directedAdjacencyList[i].size());
+        prev[i] = -1;
+        next[i] = -1;
+    }
+    bestDist[linkToId[startLocation]] = 0;
+
+    // for (int i = 0; i < directedAdjacencyList.size(); i++) {
+    //     for (int s : directedAdjacencyList[i]) {
+    //         std::cout << s << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+    std::set<std::pair<int, int>> links;
+    links.insert(std::pair<int, int> (0, linkToId[startLocation])); // sets of pairs sort by first element (distance); second element is link id
+    std::pair<int, int> curr;
+    while (!links.empty()) {
+        curr = links.extract(links.begin()).value();
+        visited[curr.second] = true;
+
+        // std::cout << "extracted (" << curr.first << ", " << curr.second << ")" << std::endl;
+        for (int i : directedAdjacencyList[curr.second]) {
+            // std::cout << i << std::endl;
+            // std::cout << "second: " << bestDist[i] << " > " << bestDist[curr.second] << " + " << weights[i] << std::endl;
+            if ((!visited[i]) && (bestDist[i] > bestDist[curr.second] + weights[i])) {
+                bestDist[i] = bestDist[curr.second] + weights[i];
+                prev[i] = curr.second;
+                // std::cout << "i: " << i << ", curr.second: " << curr.second << std::endl;
+                links.insert(std::pair<int, int> (bestDist[i], i));
+            }
+        }
+    }
+
+    std::vector<string> ret;
+    int id = linkToId[endLocation];
+    while (id != linkToId[startLocation]) {
+        ret.insert(ret.begin(), idToLink[id]);
+        id = prev[id];
+    }
+    ret.insert(ret.begin(), idToLink[id]);
+
+    std::cout << "output: " << std::endl;
+    for (string s : ret) {
+        std::cout << s << std::endl;
+    }
+    return ret;
 }
 
 bool TheWikiGame::cmp(pair<int, double>& a, pair<int, double>& b){

@@ -11,7 +11,7 @@ class TheWikiGame{
     public:
         TheWikiGame(std::string titleFile, std::string linksFile); 
         std::vector<std::string> bfs(std::string startLocation, std::string endLocation);
-        std::vector<std::vector<std::string>> djikstra(std::string startLocation, std::string endLocation);
+        std::vector<std::string> djikstra(std::string startLocation, std::string endLocation);
         void pageRank(double dampingFactor, int depth, int topN);
         void resetPageRank();
         std::string getLinkByID(int id);
