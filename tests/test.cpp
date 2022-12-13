@@ -12,7 +12,8 @@
 
 TEST_CASE("Constructor test") {
     //TheWikiGame test = TheWikiGame("/workspaces/cs225/TheWikiGame/ArticleTJason.txt", "/workspaces/cs225/TheWikiGame/ArticleLinksJason.txt");
-    TheWikiGame test = TheWikiGame("/workspaces/CS225 Labs/TheWikiGame/ArticleTKevin.txt", "/workspaces/CS225 Labs/TheWikiGame/ArticleLinksKevin.txt");
+    // TheWikiGame test = TheWikiGame("/workspaces/CS225 Labs/TheWikiGame/ArticleTKevin.txt", "/workspaces/CS225 Labs/TheWikiGame/ArticleLinksKevin.txt");
+    TheWikiGame test = TheWikiGame("/workspaces/CS225/wikigame/TheWikiGame/ArticleTJosh.txt", "/workspaces/CS225/wikigame/TheWikiGame/ArticleLinksJosh.txt");
     REQUIRE(test.getIDByLink("https://en.wikipedia.org/wiki/Abraham_Lincoln") == 1);
     REQUIRE(test.getLinkByID(1) == "https://en.wikipedia.org/wiki/Abraham_Lincoln");
     REQUIRE(test.getIDByLink("https://en.wikipedia.org/wiki/Bushism") == 111);
@@ -26,4 +27,8 @@ TEST_CASE("Constructor test") {
     REQUIRE(temp.size() == 1667);
     REQUIRE(test.getLinkByID(temp[0].first) == "https://en.wikipedia.org/wiki/President_of_the_United_States");
     REQUIRE(test.getLinkByID(temp[1].first) == "https://en.wikipedia.org/wiki/Abraham_Lincoln");
+
+    std::vector<std::string>> temp2 = test.dijkstra("https://en.wikipedia.org/wiki/Abraham_Lincoln", "https://en.wikipedia.org/wiki/Lee_Harvey_Oswald");
+    REQUIRE(temp2[0] == "https://en.wikipedia.org/wiki/Abraham_Lincoln");
+    REQUIRE(temp2[temp2.size() - 1] == "https://en.wikipedia.org/wiki/Lee_Harvey_Oswald");
 }
