@@ -97,15 +97,19 @@ int TheWikiGame::getIDByLink(std::string url) {
 }
 std::vector<std::string> TheWikiGame::bfs(std::string startLocation, std::string endLocation) {
 
+    //Check if starting and ending locations are valid
     if(linkToId.count(startLocation) == 0 || linkToId.count(endLocation) == 0){
         std::cout<<"Starting or ending location is invalid"<<std::endl;
         return std::vector<string>();
     }
+
+    //Check if starting and ending location are the same
     if(startLocation == endLocation){
         std::cout<<"The shortest path between "<<startLocation<< " and " <<endLocation<<" is 0 steps"<<std::endl;
         return std::vector<string>();
     }
-
+    
+    //Set up queue, ID, and vectors to prepare for BFS operation
     std::vector<string> shortestPath;
     std::queue<int>bfsQueue;
     int startId = linkToId[startLocation];
@@ -118,6 +122,7 @@ std::vector<std::string> TheWikiGame::bfs(std::string startLocation, std::string
     int distances[idToLink.size()];
     int prev[idToLink.size()];
 
+    //Set up initial values for vectors
     for(int i = 0; i < idToLink.size(); i++){
         visited[i] = false;
         distances[i] = 100000;
@@ -127,6 +132,7 @@ std::vector<std::string> TheWikiGame::bfs(std::string startLocation, std::string
     visited[startId] = true;
     distances[startId] = 0;
 
+    //Perform BFS
     while(!foundPath && !bfsQueue.empty()){
         int degreeSize = bfsQueue.size();
         for(int j = 0; j < degreeSize; j++){
@@ -136,11 +142,11 @@ std::vector<std::string> TheWikiGame::bfs(std::string startLocation, std::string
             for(int k = 0; k < linksToOtherPages.size(); k++){
                 int adjacentId = linksToOtherPages[k];
                 if(!visited[adjacentId]){
-                    bfsQueue.push(adjacentId);
-                    visited[adjacentId] = true;
+                    bfsQueue.push(adjacentId); //Push neighboring ID into BFS stack
+                    visited[adjacentId] = true; //Mark ID as visited
                     distances[adjacentId] = distances[currentId]+1;
-                    prev[adjacentId] = currentId;
-                    if(adjacentId == endId){
+                    prev[adjacentId] = currentId; //The key is  to maintain the path in the BFS operation so we can print it out later
+                    if(adjacentId == endId){ //If the ending ID has been found, we end the BFS
                         foundPath = true;
                     }
                 }
@@ -148,17 +154,18 @@ std::vector<std::string> TheWikiGame::bfs(std::string startLocation, std::string
         }
         dist++;
     }
-    if(!foundPath){
+    if(!foundPath){ //If no paths were found and the queue was emptied, that means we couldn't find a valid path.
         std::cout<<"No paths were found between "<<startLocation<< " and " <<endLocation<<std::endl;
         return std::vector<string>();
     }
-    else{
+    else{ //Otherwise perform backtracking with the prev vector to obtain the path we took
         int backtrack = endId;
         shortestPath.push_back(idToLink[endId]);
         while(prev[backtrack] != -1){
             shortestPath.push_back(idToLink[prev[backtrack]]);
             backtrack = prev[backtrack];
         }
+        //Print statements and return shortest path
         std::cout<<"The shortest path between "<<startLocation<< " and " <<endLocation<<" is " << dist<< " steps"<<std::endl;
         std::reverse(shortestPath.begin(), shortestPath.end());
         return shortestPath;
@@ -251,20 +258,23 @@ bool TheWikiGame::cmp(pair<int, double>& a, pair<int, double>& b){
     return (a.second > b.second);
 }
 
-void TheWikiGame::pageRank(double dampingFactor, int depth, int topN){
+vector<pair<int, double>> TheWikiGame::pageRank(double dampingFactor, int depth, int topN){
     for(unsigned i = 0; i < depth; i++){
-        std::unordered_map<int, double> updatedPageRank = idToPageRank;
+        std::unordered_map<int, double> updatedPageRank = idToPageRank; //Create an new map to hold our updated PageRank scores
+        //Set all scores to 0 initially for the updated page rank.
         for(auto& it : updatedPageRank){
             it.second = 0.0;
         }
         for(auto& it : directedAdjacencyList){
-            int currentId = it.first;
-            std::vector<int> linksToOtherPages = it.second;
+            int currentId = it.first; //Find current "page"
+            std::vector<int> linksToOtherPages = it.second; //List of adjacent pages within the class
             for(unsigned j = 0; j < linksToOtherPages.size(); j++){
                 int adjacentId = linksToOtherPages[j];
-                updatedPageRank[adjacentId] += idToPageRank[currentId]/linksToOtherPages.size();
+                //Perform page rank algorithm based on current scores and adjacent nodes by distributing evenly amongst neighboring pages
+                updatedPageRank[adjacentId] += idToPageRank[currentId]/linksToOtherPages.size(); 
             }
         }
+        //Update the PageRank with damping factor accounted for
        for (auto& [id, _] : directedAdjacencyList){
             idToPageRank[id] = (1 - dampingFactor)/idToPageRank.size() + dampingFactor*updatedPageRank[id];
        }
@@ -272,20 +282,25 @@ void TheWikiGame::pageRank(double dampingFactor, int depth, int topN){
 
     vector<pair<int, double>> tempSort;
 
+    //Processing so we return pages in order of ranking
     for(auto& it : idToPageRank){
         tempSort.push_back(it);
     }
-
     sort(tempSort.begin(), tempSort.end(), cmp);
+
+    //Prints top N pages
     std::cout<<"The top "<< topN << " pages are:" << std::endl;
     for(int j = 0; j < topN; j++){
         int topId = tempSort[j].first;
         std::string topLink = idToLink[topId];
         std::cout << topLink << " " << idToPageRank[topId] << std::endl;
     }
+    //Return the sorted pages based on their PageRank score
+    return tempSort;
 }
 
 void TheWikiGame::resetPageRank(){
+    //Resets PageRank scores
     for(int i = 1; i <= idToPageRank.size(); i++){
         idToPageRank[i] = 1/(idToPageRank.size());
     }
